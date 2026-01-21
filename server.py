@@ -280,7 +280,76 @@ if __name__ == "__main__":
 
     if transport == "sse":
         logger.info(f"🚀 Starting SSE server on port {port}")
-        mcp.run(transport="sse", host="0.0.0.0", port=port)
+        
+        from fastapi.responses import HTMLResponse
+        app = mcp.sse_app()
+        
+        @app.get("/", response_class=HTMLResponse)
+        async def root():
+            return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Zoo Animal MCP Server 🦁</title>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+                <style>
+                    body { 
+                        font-family: 'Inter', sans-serif; 
+                        display: flex; 
+                        justify-content: center; 
+                        align-items: center; 
+                        height: 100vh; 
+                        margin: 0; 
+                        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); 
+                        color: white;
+                    }
+                    .card {
+                        background: rgba(255, 255, 255, 0.1);
+                        backdrop-filter: blur(10px);
+                        padding: 3rem;
+                        border-radius: 20px;
+                        border: 1px solid rgba(255, 255, 255, 0.2);
+                        text-align: center;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                    }
+                    h1 { margin-bottom: 0.5rem; color: #4ecca3; }
+                    p { color: #a2a8d3; }
+                    .endpoint {
+                        background: #0f3460;
+                        padding: 1rem;
+                        border-radius: 10px;
+                        margin-top: 2rem;
+                        font-family: monospace;
+                        border: 1px solid #4ecca3;
+                        word-break: break-all;
+                    }
+                    .status {
+                        display: inline-block;
+                        padding: 0.2rem 0.8rem;
+                        background: #4ecca3;
+                        color: #1a1a2e;
+                        border-radius: 20px;
+                        font-weight: bold;
+                        font-size: 0.8rem;
+                        margin-top: 1rem;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    <h1>Zoo Animal MCP Server 🦁🐧🐻</h1>
+                    <p>Your Model Context Protocol server is live and ready to serve.</p>
+                    <div class="status">ONLINE</div>
+                    <div class="endpoint">
+                        Endpoint: https://""" + os.getenv("K_SERVICE", "demo-zoo-server") + """-512499410551.us-east1.run.app/sse
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+        
+        import uvicorn
+        uvicorn.run(app, host="0.0.0.0", port=port)
     else:
         logger.info("🚀 Starting stdio server")
-        mcp.run(transport="stdio")
+        mcp.run()
