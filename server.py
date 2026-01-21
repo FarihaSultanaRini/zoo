@@ -291,16 +291,33 @@ def get_animal_details(name: str) -> Dict[str, Any]:
     return {}
 
 if __name__ == "__main__":
-    if os.getenv("TRANSPORT") == "sse":
-        port = int(os.getenv("PORT", 8080))
-        logger.info(f"🚀 MCP server started on port {port} with SSE transport")
-        asyncio.run(
-            mcp.run_async(
-                transport="sse",
-                host="0.0.0.0",
-                port=port,
-            )
-        )
+    # Auto-detect Cloud Run environment
+    is_cloud_run = os.getenv("K_SERVICE") is not None
+    port = int(os.getenv("PORT", 8080))
+    transport = os.getenv("TRANSPORT", "sse" if is_cloud_run else "stdio")
+
+    if transport == "sse":
+        logger.info(f"🚀 MCP server starting on port {port} with SSE transport")
+        
+        # We use the sse_app to add a custom root route for easy verification
+        from fastapi import FastAPI
+        import uvicorn
+        
+        # Get the standard FastMCP SSE app
+        app = mcp.sse_app()
+        
+        # Add a simple landing page at the root
+        @app.get("/")
+        async def root():
+            return {
+                "status": "Zoo Animal MCP Server is running! 🦁",
+                "transport": "SSE",
+                "mcp_endpoint": "/sse",
+                "instructions": "Connect your MCP client to the /sse endpoint."
+            }
+        
+        # Run it
+        uvicorn.run(app, host="0.0.0.0", port=port)
     else:
-        logger.info("🚀 MCP server started with stdio transport")
+        logger.info("🚀 MCP server starting with stdio transport")
         mcp.run()
