@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "local-zoo": {
+      "command": "python",
+      "args": [
+        "G:/zoo/zoo/server.py"
+      ]
+    }
+  }
+}
