@@ -28,5 +28,5 @@ ENV PORT=8080
 # Cloud Run ignores EXPOSE but it's good for local documentation
 EXPOSE 8080
 
-# Run the FastMCP server
-CMD ["uv", "run", "server.py"]
+# Run the FastMCP server directly using the environment's python
+CMD ["python", "server.py"]

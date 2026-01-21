@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import os
+import uvicorn
+from fastapi import FastAPI
 from typing import List, Dict, Any
-
 from fastmcp import FastMCP
 
 logger = logging.getLogger(__name__)
@@ -14,9 +15,7 @@ API_KEY = os.getenv("MCP_API_KEY")
 mcp = FastMCP("Zoo Animal MCP Server 🦁🐧🐻")
 
 def verify_access():
-    """Simple security check for production. In a real scenario, use middleware or auth headers."""
-    # This is a placeholder for more complex auth.
-    # For now, we logging that a tool was called.
+    """Simple security check for production placeholder."""
     pass
 
 # Dictionary of animals at the zoo
@@ -258,33 +257,16 @@ ZOO_ANIMALS = [
 def get_animals_by_species(species: str) -> List[Dict[str, Any]]:
     """
     Retrieves all animals of a specific species from the zoo.
-    Can also be used to collect the base data for aggregate queries
-    of animals of a specific species - like counting the number of penguins
-    or finding the oldest lion.
-
-    Args:
-        species: The species of the animal (e.g., 'lion', 'penguin').
-
-    Returns:
-        A list of dictionaries, where each dictionary represents an animal
-        and contains details like name, age, enclosure, and trail.
     """
-    logger.info(f">>> 🛠️ Tool: 'get_animals_by_species' called for '{species}'")
+    logger.info(f">>> \ud83d\udee0\ufe0f Tool: 'get_animals_by_species' called for '{species}'")
     return [animal for animal in ZOO_ANIMALS if animal["species"].lower() == species.lower()]
 
 @mcp.tool()
 def get_animal_details(name: str) -> Dict[str, Any]:
     """
     Retrieves the details of a specific animal by its name.
-
-    Args:
-        name: The name of the animal.
-
-    Returns:
-        A dictionary with the animal's details (species, name, age, enclosure, trail)
-        or an empty dictionary if the animal is not found.
     """
-    logger.info(f">>> 🛠️ Tool: 'get_animal_details' called for '{name}'")
+    logger.info(f">>> \ud83d\udee0\ufe0f Tool: 'get_animal_details' called for '{name}'")
     for animal in ZOO_ANIMALS:
         if animal["name"].lower() == name.lower():
             return animal
@@ -297,27 +279,14 @@ if __name__ == "__main__":
     transport = os.getenv("TRANSPORT", "sse" if is_cloud_run else "stdio")
 
     if transport == "sse":
-        logger.info(f"🚀 MCP server starting on port {port} with SSE transport")
-        
-        # We use the sse_app to add a custom root route for easy verification
-        from fastapi import FastAPI
-        import uvicorn
-        
-        # Get the standard FastMCP SSE app
-        app = mcp.sse_app()
-        
-        # Add a simple landing page at the root
-        @app.get("/")
-        async def root():
-            return {
-                "status": "Zoo Animal MCP Server is running! 🦁",
-                "transport": "SSE",
-                "mcp_endpoint": "/sse",
-                "instructions": "Connect your MCP client to the /sse endpoint."
-            }
-        
-        # Run it
-        uvicorn.run(app, host="0.0.0.0", port=port)
+        logger.info(f"🚀 Starting SSE server on port {port}")
+        asyncio.run(
+            mcp.run_async(
+                transport="sse",
+                host="0.0.0.0",
+                port=port,
+            )
+        )
     else:
-        logger.info("🚀 MCP server starting with stdio transport")
+        logger.info("🚀 Starting stdio server")
         mcp.run()
