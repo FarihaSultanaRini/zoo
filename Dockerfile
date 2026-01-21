@@ -24,6 +24,8 @@ ENV PYTHONUNBUFFERED=1
 ENV TRANSPORT=sse
 # Default port for Cloud Run
 ENV PORT=8080
+# Use the virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Cloud Run ignores EXPOSE but it's good for local documentation
 EXPOSE 8080

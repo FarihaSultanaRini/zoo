@@ -280,13 +280,7 @@ if __name__ == "__main__":
 
     if transport == "sse":
         logger.info(f"🚀 Starting SSE server on port {port}")
-        asyncio.run(
-            mcp.run_async(
-                transport="sse",
-                host="0.0.0.0",
-                port=port,
-            )
-        )
+        mcp.run(transport="sse", host="0.0.0.0", port=port)
     else:
         logger.info("🚀 Starting stdio server")
-        mcp.run()
+        mcp.run(transport="stdio")
