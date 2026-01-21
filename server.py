@@ -254,23 +254,35 @@ ZOO_ANIMALS = [
 ]
 
 @mcp.tool()
-def get_animals_by_species(species: str) -> List[Dict[str, Any]]:
+def get_animals_by_species(species: str) -> str:
     """
     Retrieves all animals of a specific species from the zoo.
+    Common species: lion, penguin, bear, elephant, giraffe, antelope, walrus.
     """
-    logger.info(f">>> \ud83d\udee0\ufe0f Tool: 'get_animals_by_species' called for '{species}'")
-    return [animal for animal in ZOO_ANIMALS if animal["species"].lower() == species.lower()]
+    logger.info(f">>> 🛠️ Tool: 'get_animals_by_species' called for '{species}'")
+    matches = [animal for animal in ZOO_ANIMALS if animal["species"].lower() == species.lower()]
+    if not matches:
+        return f"No animals found for species: {species}"
+    
+    # Return as a pretty string for the CLI agent
+    return "\n".join([f"- {a['name']} ({a['species']}): Age {a['age']}, Enclosure: {a['enclosure']}" for a in matches])
 
 @mcp.tool()
-def get_animal_details(name: str) -> Dict[str, Any]:
+def get_animal_details(name: str) -> str:
     """
-    Retrieves the details of a specific animal by its name.
+    Retrieves full details for a specific animal by its name.
+    Example names: Leo, Waddles, Smokey, Ellie, Gerald.
     """
-    logger.info(f">>> \ud83d\udee0\ufe0f Tool: 'get_animal_details' called for '{name}'")
+    logger.info(f">>> 🛠️ Tool: 'get_animal_details' called for '{name}'")
     for animal in ZOO_ANIMALS:
         if animal["name"].lower() == name.lower():
-            return animal
-    return {}
+            return (f"Details for {animal['name']}:\n"
+                    f"- Species: {animal['species']}\n"
+                    f"- Age: {animal['age']}\n"
+                    f"- Enclosure: {animal['enclosure']}\n"
+                    f"- Trail: {animal['trail']}")
+    
+    return f"Animal named '{name}' not found in the zoo registry."
 
 if __name__ == "__main__":
     # Auto-detect Cloud Run environment
@@ -352,7 +364,14 @@ if __name__ == "__main__":
         app.add_route("/", root)
         
         import uvicorn
-        uvicorn.run(app, host="0.0.0.0", port=port)
+        uvicorn.run(
+            app, 
+            host="0.0.0.0", 
+            port=port, 
+            proxy_headers=True, 
+            forwarded_allow_ips="*",
+            timeout_keep_alive=65
+        )
     else:
         logger.info("🚀 Starting stdio server")
         mcp.run()
