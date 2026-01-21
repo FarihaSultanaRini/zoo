@@ -281,12 +281,11 @@ if __name__ == "__main__":
     if transport == "sse":
         logger.info(f"🚀 Starting SSE server on port {port}")
         
-        from fastapi.responses import HTMLResponse
+        from starlette.responses import HTMLResponse
         app = mcp.sse_app()
         
-        @app.get("/", response_class=HTMLResponse)
-        async def root():
-            return """
+        async def root(request):
+            html = """
             <!DOCTYPE html>
             <html>
             <head>
@@ -341,12 +340,16 @@ if __name__ == "__main__":
                     <p>Your Model Context Protocol server is live and ready to serve.</p>
                     <div class="status">ONLINE</div>
                     <div class="endpoint">
-                        Endpoint: https://""" + os.getenv("K_SERVICE", "demo-zoo-server") + """-512499410551.us-east1.run.app/sse
+                        Endpoint URL: /sse
                     </div>
                 </div>
             </body>
             </html>
             """
+            return HTMLResponse(content=html)
+        
+        # Add the route using Starlette syntax
+        app.add_route("/", root)
         
         import uvicorn
         uvicorn.run(app, host="0.0.0.0", port=port)

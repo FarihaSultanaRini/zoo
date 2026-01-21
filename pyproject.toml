@@ -7,4 +7,5 @@ dependencies = [
     "fastmcp==2.12.4",
     "fastapi",
     "uvicorn",
+    "starlette",
 ]
